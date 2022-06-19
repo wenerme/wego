@@ -1,8 +1,9 @@
 package serves
 
 import (
-	"github.com/rs/zerolog/log"
 	"reflect"
+
+	"github.com/rs/zerolog/log"
 )
 
 type Endpoint interface {

@@ -2,10 +2,11 @@ package serve
 
 import (
 	"fmt"
-	connect_go "github.com/bufbuild/connect-go"
-	"github.com/go-chi/chi/v5"
 	"net/http"
 	"reflect"
+
+	connect_go "github.com/bufbuild/connect-go"
+	"github.com/go-chi/chi/v5"
 )
 
 type ConnectServiceDesc[T any] struct {
@@ -22,8 +23,8 @@ type ConnectEndpoint struct {
 	Middlewares    chi.Middlewares
 	HandlerOptions []connect_go.HandlerOption
 	ClientOptions  []connect_go.ClientOption
-	NewHandler     any //func(svc T, opts ...connect_go.HandlerOption) (string, http.Handler)
-	NewClient      any //func(httpClient connect_go.HTTPClient, baseURL string, opts ...connect_go.ClientOption) T
+	NewHandler     any // func(svc T, opts ...connect_go.HandlerOption) (string, http.Handler)
+	NewClient      any // func(httpClient connect_go.HTTPClient, baseURL string, opts ...connect_go.ClientOption) T
 }
 
 func (ep *ConnectEndpoint) MountConnect(r chi.Router) {

@@ -1,9 +1,10 @@
 package nilx
 
 import (
-	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestZero(t *testing.T) {
