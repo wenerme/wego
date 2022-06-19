@@ -56,3 +56,7 @@ func (e HTTPEndpoint) String() string {
 	}
 	return fmt.Sprintf("%v %v | %v", method, e.Path, e.EndpointDesc.String())
 }
+
+func HTTPEndpointSortByPathLen(a, b *HTTPEndpoint) bool {
+	return len(a.Path) > len(b.Path)
+}
