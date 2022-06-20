@@ -24,7 +24,7 @@ func (conf *DatabaseConf) BuildDSN() string {
 		if driver == "" {
 			driver = "pgx"
 		}
-		conf.DSN = buildSqliteDSN(conf)
+		conf.DSN = buildPgDSN(conf)
 	}
 
 	conf.Driver = driver
