@@ -1,11 +1,12 @@
 REPO_ROOT ?= $(shell git rev-parse --show-toplevel)
+# copy to dir & uncomment
 #-include $(REPO_ROOT)/mod.mk
 
 # Module override
 -include local.mk
 
 COLOR 	:= "\e[1;36m%s\e[0m\n"
-RED 	:=   "\e[1;31m%s\e[0m\n"
+RED 	:= "\e[1;31m%s\e[0m\n"
 
 ifdef GOROOT
 PATH 	:= $(GOROOT)/bin:$(PATH)
@@ -19,8 +20,8 @@ GOARCH 		?= $(shell go env GOARCH)
 GOPATH 		?= $(shell go env GOPATH)
 CGO_ENABLED	?= 0
 
-GOMODDIR	= $(shell dirname $(shell go env GOMOD))
-GOMODNAME 	= $(shell basename $(GOMODDIR))
+GOMODDIR	?= $(shell dirname $(shell go env GOMOD))
+GOMODNAME 	?= $(shell basename $(GOMODDIR))
 
 DOCKER_TAG 	:= $(or $(DOCKER_TAG),$(shell git rev-parse --abbrev-ref HEAD))
 BUILD_TAG	:= $(or $(BUILD_TAG),$(shell git rev-parse --abbrev-ref HEAD))
@@ -45,9 +46,11 @@ info:
 build: ## build binary
 	@ls cmd | xargs -n1 -I {} sh -c 'set -x;echo Building {}; GOOS=$(GOOS) GOARCH=$(GOARCH) CGO_ENABLED=$(CGO_ENABLED) go build $(GOFLAGS) -o build/{}/bin/{} ./cmd/{}'
 
+ifneq ("$(wildcard build/*/Dockerfile)","")
 image: GOOS:=linux
 image: build # build image
 	@ls cmd | xargs -n1 -I {} sh -c 'set -x;echo Building {}; docker build -t {}:$(BUILD_TAG) build/{}'
+endif
 
 .PHONY: lint
 lint: ## lint
@@ -80,6 +83,31 @@ go-mod-up: ## update go dependencies
 	@printf $(COLOR) "Update dependencies..."
 	@go get -u -t $(PINNED_DEPENDENCIES) ./...
 	@go mod tidy
+
+.PHONY: go-list-cgo
+go-list-cgo: ## List cgo modules
+	@printf $(COLOR) "List cgo module..."
+	@go list -f "{{if .CgoFiles}}{{.ImportPath}}{{end}}" `go list -f "{{.ImportPath}}{{range .Deps}} {{.}}{{end}}" ./...`
+
+##### entgo #####
+
+ifneq ("$(wildcard ent/schema)","")
+go-ent-describe:
+	go run entgo.io/ent/cmd/ent describe ./ent/schema
+go-ent-gen:
+	go generate ./ent
+endif
+
+ifneq ("$(wildcard atlas.hcl)","")
+atlas-migrate-new:
+	atlas migrate new
+atlas-migrate-hash-force:
+	atlas migrate hash --force
+atlas-migrate-migrate:
+	atlas migrate validate
+endif
+
+##### Generic #####
 
 ensure-no-changes: ## ensure git doesn't have any changes
 	@printf $(COLOR) "Check for local changes..."
