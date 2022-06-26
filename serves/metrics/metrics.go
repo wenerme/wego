@@ -23,7 +23,7 @@ func RegisterMetrics() {
 	})
 }
 
-type MetricsMiddleware struct {
+type Middleware struct {
 	// Prefix is the prefix that will be set on the metrics, by default it will be empty.
 	Prefix string
 	// DurationBuckets are the buckets used by Prometheus for the HTTP request duration metrics,
@@ -45,7 +45,7 @@ type MetricsMiddleware struct {
 	ConstLabels prometheus.Labels
 }
 
-func (mm *MetricsMiddleware) defaults() {
+func (mm *Middleware) defaults() {
 	if len(mm.DurationBuckets) == 0 {
 		mm.DurationBuckets = prometheus.DefBuckets
 	}
@@ -67,7 +67,7 @@ func (mm *MetricsMiddleware) defaults() {
 	}
 }
 
-func (mm *MetricsMiddleware) Handle() func(next http.Handler) http.Handler {
+func (mm *Middleware) Handle() func(next http.Handler) http.Handler {
 	mm.defaults()
 
 	httpRequestDurHistogram := prometheus.NewHistogramVec(prometheus.HistogramOpts{

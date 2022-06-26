@@ -1,3 +1,3 @@
 package testx
 
-import _ "github.com/glebarez/go-sqlite"
+import _ "github.com/glebarez/go-sqlite" //nolint:revive

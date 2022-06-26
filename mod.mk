@@ -72,6 +72,11 @@ gen: ## generate
 	[ ! -e buf.gen.yaml ] || buf generate `ls -d proto/* | grep -v bundle`
 	$(MAKE) fmt
 
+.PHONY: test
+test: ## test
+	@printf $(COLOR) "Running testing..."
+	@go test -v ./...
+
 .PHONY: go-test-cover
 go-test-cover: ## run test & generate coverage
 	@printf $(COLOR) "Running test with coverage..."

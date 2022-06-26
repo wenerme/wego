@@ -2,12 +2,12 @@ package testx
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
-	"io"
+
+	"github.com/wenerme/wego/stdx"
 )
 
-func PrintJson(v interface{}) {
+func PrintJSON(v interface{}) {
 	b, err := json.MarshalIndent(v, "", "  ")
 	NoErr(err)
 	fmt.Println(string(b))
@@ -20,15 +20,9 @@ func NoErr(err error) {
 }
 
 func Must[T any](v T, err error) T {
-	if err != nil {
-		panic(err)
-	}
-	return v
+	return stdx.Must(v, err)
 }
 
 func MustNonEOF[T any](v T, err error) T {
-	if err != nil && !errors.Is(err, io.EOF) {
-		panic(err)
-	}
-	return v
+	return stdx.MustNonEOF(v, err)
 }
