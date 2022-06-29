@@ -15,6 +15,7 @@ require (
 	go.uber.org/multierr v1.8.0
 	golang.org/x/exp v0.0.0-20220613132600-b0d781184e0d
 	google.golang.org/grpc v1.47.0
+	google.golang.org/protobuf v1.28.0
 	gorm.io/driver/postgres v1.3.7
 	gorm.io/driver/sqlite v1.3.4
 	gorm.io/gorm v1.23.6
@@ -51,7 +52,6 @@ require (
 	golang.org/x/sys v0.0.0-20220624220833-87e55d714810 // indirect
 	golang.org/x/text v0.3.7 // indirect
 	google.golang.org/genproto v0.0.0-20220624142145-8cd45d7dbd1f // indirect
-	google.golang.org/protobuf v1.28.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	modernc.org/libc v1.16.11 // indirect
 	modernc.org/mathutil v1.4.1 // indirect
