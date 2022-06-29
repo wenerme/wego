@@ -8,4 +8,4 @@ start-dev-pg:
 	-v $(PWD)/ignored/pg:/var/lib/postgresql/data \
 	--name pg postgres:alpine
 
-ci: go-test-cover
+ci: info go-test-cover
