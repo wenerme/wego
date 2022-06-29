@@ -7,3 +7,5 @@ start-dev-pg:
 	-e POSTGRES_DB=dev \
 	-v $(PWD)/ignored/pg:/var/lib/postgresql/data \
 	--name pg postgres:alpine
+
+ci: go-test-cover
