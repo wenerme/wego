@@ -22,6 +22,10 @@ jobs:
       - uses: actions/checkout@v3
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v3
+        with:
+          version: latest
+          skip-go-installation: true
+          args: --timeout=3m --verbose
 
   test:
     runs-on: ubuntu-latest
@@ -33,7 +37,7 @@ jobs:
       - name: Run CI
         run: |
           cp -f `which go` /usr/bin/go || true
-          [ -z "$GOROOT" ] || export PATH=${GOROOT}/bin:$PATH
+          export PATH=${go env GOROOT}/bin:$PATH
           go version
           make ci
       - name: Upload coverage to codecov.io
