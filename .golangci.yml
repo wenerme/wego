@@ -19,6 +19,7 @@ linters:
     #- gosimple
     #- staticcheck
     #- unused
+    #- structcheck
 
     # too strict
     #- gomnd
@@ -40,7 +41,6 @@ linters:
     - errcheck
     - govet
     - ineffassign
-    - structcheck
     - typecheck
     - varcheck
 
