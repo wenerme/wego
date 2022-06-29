@@ -1,5 +1,5 @@
 REPO_ROOT ?= $(shell git rev-parse --show-toplevel)
--include $(REPO_ROOT)/mod.mk
+-include $(REPO_ROOT)/go.mk
 
 start-dev-pg:
 	docker run -it --rm -p 5432:5432 \

@@ -35,8 +35,8 @@ jobs:
           go-version: '1.18'
       - name: Run CI
         run: |
-          cp -f `which go` /usr/bin/go || true
-          export PATH="$(go env GOROOT)/bin:$PATH"
+          #cp -f `which go` /usr/bin/go || true
+          #export PATH="$(go env GOROOT)/bin:$PATH"
           go version
           make ci
       - name: Upload coverage to codecov.io

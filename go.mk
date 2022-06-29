@@ -1,6 +1,8 @@
 REPO_ROOT ?= $(shell git rev-parse --show-toplevel)
 # copy to dir & uncomment
-#-include $(REPO_ROOT)/mod.mk
+#-include $(REPO_ROOT)/go.mk
+
+SHELL:=env bash -O extglob -O globstar
 
 # Module override
 -include local.mk
@@ -39,12 +41,16 @@ info:
 	@echo "GOARCH=$(GOARCH)"
 	@echo "CGO_ENABLED=$(CGO_ENABLED)"
 	@echo "GOPROXY=`go env GOPROXY`"
+	@echo "GOROOT=`go env GOROOT`"
 	@echo "DOCKER_REPO=$(DOCKER_REPO)"
 	@echo "DOCKER_TAG=$(DOCKER_TAG)"
+	@echo -e "\t `go version`"
 
 .PHONY: build
 build: ## build binary
 	@ls cmd | xargs -n1 -I {} sh -c 'set -x;echo Building {}; GOOS=$(GOOS) GOARCH=$(GOARCH) CGO_ENABLED=$(CGO_ENABLED) go build $(GOFLAGS) -o build/{}/bin/{} ./cmd/{}'
+	@! command -v upx > /dev/null || upx build/*/bin/*
+	-@du -sh build/*/bin/*
 
 ifneq ("$(wildcard build/*/Dockerfile)","")
 image: GOOS:=linux
@@ -60,6 +66,7 @@ lint: ## lint
 
 .PHONY: fmt
 fmt: tidy ## tidy,format and imports
+	[ ! -e buf.gen.yaml ] || buf format -w
 	gofumpt -w `find . -type f -name '*.go' -not -path "./vendor/*"`
 	goimports -w `find . -type f -name '*.go' -not -path "./vendor/*"`
 
@@ -94,13 +101,15 @@ go-list-cgo: ## List cgo modules
 	@printf $(COLOR) "List cgo module..."
 	@go list -f "{{if .CgoFiles}}{{.ImportPath}}{{end}}" `go list -f "{{.ImportPath}}{{range .Deps}} {{.}}{{end}}" ./...`
 
-##### entgo #####
+##### ecosystem #####
 
 ifneq ("$(wildcard ent/schema)","")
 go-ent-describe:
 	go run entgo.io/ent/cmd/ent describe ./ent/schema
 go-ent-gen:
 	go generate ./ent
+	$(MAKE) fmt
+	git add ent
 endif
 
 ifneq ("$(wildcard atlas.hcl)","")
