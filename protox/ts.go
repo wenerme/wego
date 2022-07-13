@@ -1,6 +1,7 @@
 package protox
 
 import (
+	"database/sql"
 	"time"
 
 	"google.golang.org/protobuf/types/known/durationpb"
@@ -44,3 +45,11 @@ func PtrToTimestamp(t *time.Time) *timestamppb.Timestamp {
 
 // ToDuration converts a time.Duration to a protobuf duration.
 var ToDuration = durationpb.New
+
+// SQLToTimestamp converts a sql.NullTime to a protobuf timestamp.
+func SQLToTimestamp(t sql.NullTime) *timestamppb.Timestamp {
+	if t.Valid {
+		return timestamppb.New(t.Time)
+	}
+	return nil
+}

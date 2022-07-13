@@ -53,7 +53,7 @@ func LogRouter(log zerolog.Logger, r chi.Router) {
 	}
 
 	for p, m := range path {
-		if len(m) < 9 {
+		if len(m) < 9 { //nolint:gomnd // default methods
 			for _, v := range m {
 				log.Info().Str("method", v).Str("path", p).Msg("route")
 			}

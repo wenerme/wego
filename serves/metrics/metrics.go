@@ -51,7 +51,7 @@ func (mm *Middleware) defaults() {
 	}
 
 	if len(mm.SizeBuckets) == 0 {
-		mm.SizeBuckets = prometheus.ExponentialBuckets(100, 10, 8)
+		mm.SizeBuckets = prometheus.ExponentialBuckets(100, 10, 8) //nolint:gomnd
 	}
 
 	if mm.Registry == nil {

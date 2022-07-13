@@ -32,8 +32,8 @@ func TestKey(t *testing.T) {
 
 		assert.NotEqual(t, k2, k3)
 		assert.Equal(t, k2.Get(ctx), 0)
-		assert.Equal(t, k2.Get(nil), 0)
-		assert.Equal(t, k2.GetWithDefault(nil, 10), 10)
+		assert.Equal(t, k2.Get(nil), 0)                 //nolint:staticcheck
+		assert.Equal(t, k2.GetWithDefault(nil, 10), 10) //nolint:staticcheck
 		assert.NotEqual(t, k2, k)
 
 		ctx = k3.WithDefaultProvider(ctx, func(ctx context.Context) (context.Context, int) {
