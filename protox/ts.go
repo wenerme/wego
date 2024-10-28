@@ -44,7 +44,9 @@ func PtrToTimestamp(t *time.Time) *timestamppb.Timestamp {
 }
 
 // ToDuration converts a time.Duration to a protobuf duration.
-var ToDuration = durationpb.New
+func ToDuration(d time.Duration) *durationpb.Duration {
+	return durationpb.New(d)
+}
 
 // SQLToTimestamp converts a sql.NullTime to a protobuf timestamp.
 func SQLToTimestamp(t sql.NullTime) *timestamppb.Timestamp {

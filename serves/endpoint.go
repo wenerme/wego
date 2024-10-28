@@ -10,7 +10,7 @@ type Endpoint interface {
 	String() string
 }
 
-var Endpoints []Endpoint
+var Endpoints []Endpoint //nolint:gochecknoglobals
 
 func RegisterEndpoints(eps ...Endpoint) {
 	for _, v := range eps {

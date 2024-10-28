@@ -3,15 +3,18 @@ REPO_ROOT ?= $(shell git rev-parse --show-toplevel)
 #-include $(REPO_ROOT)/go.mk
 
 SHELL:=env bash -O extglob -O globstar
+-include $(wildcard .env.* $(REPO_ROOT)/.env.* .env $(REPO_ROOT)/.env)
 
 # Module override
--include local.mk
+-include module.mk
 
-COLOR 	:= "\e[1;36m%s\e[0m\n"
-RED 	:= "\e[1;31m%s\e[0m\n"
+COLOR_INFO 	:= "\e[1;36m%s\e[0m\n"
+COLOR_WARN 	:= "\e[1;31m%s\e[0m\n"
 
 ifdef GOROOT
-PATH 	:= $(GOROOT)/bin:$(PATH)
+ifeq (,$(findstring $(GOROOT)/bin,$(PATH)))
+    PATH := $(GOROOT)/bin:$(PATH)
+endif
 endif
 
 GOBIN 	:= $(if $(shell go env GOBIN),$(shell go env GOBIN),$(GOPATH)/bin)
@@ -25,8 +28,7 @@ CGO_ENABLED	?= 0
 GOMODDIR	?= $(shell dirname $(shell go env GOMOD))
 GOMODNAME 	?= $(shell basename $(GOMODDIR))
 
-DOCKER_TAG 	:= $(or $(DOCKER_TAG),$(shell git rev-parse --abbrev-ref HEAD))
-BUILD_TAG	:= $(or $(BUILD_TAG),$(shell git rev-parse --abbrev-ref HEAD))
+IMAGE_TAG	:= $(or $(IMAGE_TAG),$(CI_COMMIT_REF_SLUG),$(shell git rev-parse --abbrev-ref HEAD))
 
 GOFLAGS	?= -trimpath -ldflags "-s -w"
 
@@ -44,25 +46,34 @@ info:
 	@echo "GOROOT=`go env GOROOT`"
 	@echo "DOCKER_REPO=$(DOCKER_REPO)"
 	@echo "DOCKER_TAG=$(DOCKER_TAG)"
-	@echo -e "\t `go version`"
+	@echo "IMAGE_REGISTRY=$(IMAGE_REGISTRY)"
+	@echo "IMAGE_TAG=$(IMAGE_TAG)"
+	@echo -e "`go version`"
 
 .PHONY: build
 build: ## build binary
 	@ls cmd | xargs -n1 -I {} sh -c 'set -x;echo Building {}; GOOS=$(GOOS) GOARCH=$(GOARCH) CGO_ENABLED=$(CGO_ENABLED) go build $(GOFLAGS) -o build/{}/bin/{} ./cmd/{}'
-	@! command -v upx > /dev/null || upx build/*/bin/*
+	#@! command -v upx > /dev/null || upx build/*/bin/*
 	-@du -sh build/*/bin/*
 
 ifneq ("$(wildcard build/*/Dockerfile)","")
 image: GOOS:=linux
 image: build # build image
-	@ls cmd | xargs -n1 -I {} sh -c 'set -x;echo Building {}; docker build -t {}:$(BUILD_TAG) build/{}'
+	@ls cmd | xargs -n1 -I {} sh -c 'set -e;echo Building {}; docker build -t {}:$(IMAGE_TAG) build/{}'
+push: image
+	@[ -n "$(IMAGE_REGISTRY)" ] || { printf $(COLOR_WARN) "IMAGE_REGISTRY is not set"; exit 1; }
+	@ls cmd | xargs -n1 -I {} sh -c 'set -e;SRC={}:$(IMAGE_TAG);DST=$(IMAGE_REGISTRY)/{}:$(IMAGE_TAG); printf $(COLOR_INFO) Pushing $$DST; docker tag $$SRC $$DST; docker push $$DST'
 endif
 
 .PHONY: lint
 lint: ## lint
-	@printf $(COLOR) "Linting..."
-	@[ ! -e .golangci.yml ] || golangci-lint run
-	@[ ! -e "$(REPO_ROOT)/.golangci.yml" ] || { printf $(COLOR) "Using root .golangci.yml" ; golangci-lint run -c "$(REPO_ROOT)/.golangci.yml"; }
+	@printf $(COLOR_INFO) "Linting..."
+ifneq ($(wildcard .golangci.yml),)
+	@golangci-lint run
+else
+	@printf $(COLOR_INFO) "Using root .golangci.yml"
+	@golangci-lint run -c "$(REPO_ROOT)/.golangci.yml"
+endif
 
 .PHONY: fmt
 fmt: tidy ## tidy,format and imports
@@ -81,24 +92,29 @@ gen: ## generate
 
 .PHONY: test
 test: ## test
-	@printf $(COLOR) "Running testing..."
+	@printf $(COLOR_INFO) "Running testing..."
 	@go test -v ./...
 
 .PHONY: go-test-cover
 go-test-cover: ## run test & generate coverage
-	@printf $(COLOR) "Running test with coverage..."
+	@printf $(COLOR_INFO) "Running test with coverage..."
 	@go test -race -coverprofile=cover.out -coverpkg=./... ./...
 	@go tool cover -html=cover.out -o cover.html
 
 .PHONY: go-mod-up
 go-mod-up: ## update go dependencies
-	@printf $(COLOR) "Update dependencies..."
+	@printf $(COLOR_INFO) "Update dependencies..."
 	@go get -u -t $(PINNED_DEPENDENCIES) ./...
 	@go mod tidy
 
+# go install github.com/psampaz/go-mod-outdated@latest
+outdated: ## List outdated dependencies
+	@go list -u -m -json all | go-mod-outdated -update -direct
+
+
 .PHONY: go-list-cgo
 go-list-cgo: ## List cgo modules
-	@printf $(COLOR) "List cgo module..."
+	@printf $(COLOR_INFO) "List cgo module..."
 	@go list -f "{{if .CgoFiles}}{{.ImportPath}}{{end}}" `go list -f "{{.ImportPath}}{{range .Deps}} {{.}}{{end}}" ./...`
 
 ##### ecosystem #####
@@ -124,9 +140,9 @@ endif
 ##### Generic #####
 
 ensure-no-changes: ## ensure git doesn't have any changes
-	@printf $(COLOR) "Check for local changes..."
-	@printf $(COLOR) "========================================================================"
-	@git diff --name-status --exit-code || (printf $(COLOR) "========================================================================"; printf $(RED) "Above files are not regenerated properly. Regenerate them and try again."; exit 1)
+	@printf $(COLOR_INFO) "Check for local changes..."
+	@printf $(COLOR_INFO) "========================================================================"
+	@git diff --name-status --exit-code || (printf $(COLOR_INFO) "========================================================================"; printf $(COLOR_WARN) "Above files are not regenerated properly. Regenerate them and try again."; exit 1)
 
 clean: ## cleanup build
 	rm -rf build/*/bin/*
